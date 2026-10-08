@@ -25,6 +25,7 @@ interface OfficerPortalProps {
   applicationTasks: ApplicationTask[];
   setApplicationTasks: React.Dispatch<React.SetStateAction<ApplicationTask[]>>;
   uploadedDocs: UploadedDocRecord[];
+  setUploadedDocs?: React.Dispatch<React.SetStateAction<UploadedDocRecord[]>>;
 }
 
 export const OfficerPortal: React.FC<OfficerPortalProps> = ({
@@ -32,6 +33,7 @@ export const OfficerPortal: React.FC<OfficerPortalProps> = ({
   applicationTasks,
   setApplicationTasks,
   uploadedDocs,
+  setUploadedDocs,
 }) => {
   const [selectedDept, setSelectedDept] = useState<string>('MPCB');
   const [activeTaskId, setActiveTaskId] = useState<string>(
@@ -197,7 +199,7 @@ export const OfficerPortal: React.FC<OfficerPortalProps> = ({
                   <div className="flex items-center justify-between text-[11px] text-slate-500 mt-2 pt-2 border-t border-slate-100">
                     <span>Applicant: <strong>{currentStartup.businessName}</strong></span>
                     <span className="font-mono text-indigo-900 font-semibold">
-                      SLA: {task.slaDaysRemaining}d remaining
+                      Queue: Priority Review
                     </span>
                   </div>
                 </button>
@@ -220,8 +222,7 @@ export const OfficerPortal: React.FC<OfficerPortalProps> = ({
                     </span>
                   </div>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Statutory Window: {activeTask.slaDaysTotal} Days · Department:{' '}
-                    <strong>{activeTask.department}</strong>
+                    Single Window Desk · Department: <strong>{activeTask.department}</strong>
                   </p>
                 </div>
 
@@ -265,8 +266,8 @@ export const OfficerPortal: React.FC<OfficerPortalProps> = ({
                     <strong className="capitalize text-slate-900">{currentStartup.pollutionCategory}</strong>
                   </div>
                   <div>
-                    <span className="text-slate-500 block text-[10px]">Capital Outlay</span>
-                    <strong className="text-slate-900 font-mono">₹{currentStartup.capitalInvestmentLakhs} Lakhs</strong>
+                    <span className="text-slate-500 block text-[10px]">Enterprise Scale</span>
+                    <strong className="text-slate-900 font-mono">{currentStartup.scale.toUpperCase()} MSME</strong>
                   </div>
                 </div>
               </div>
@@ -278,10 +279,10 @@ export const OfficerPortal: React.FC<OfficerPortalProps> = ({
                 </h4>
 
                 <div className="space-y-2">
-                  {uploadedDocs.slice(0, 4).map((doc) => (
+                  {uploadedDocs.slice(0, 5).map((doc) => (
                     <div
                       key={doc.docCode}
-                      className="p-3 bg-white border border-slate-200 rounded-xl flex items-center justify-between gap-3 text-xs"
+                      className="p-3 bg-white border border-slate-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
                     >
                       <div className="flex items-center gap-3">
                         <FileText className="w-4 h-4 text-indigo-600 shrink-0" />
@@ -294,9 +295,62 @@ export const OfficerPortal: React.FC<OfficerPortalProps> = ({
                         </div>
                       </div>
 
-                      <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                        Pre-Checked
-                      </span>
+                      <div className="flex items-center gap-2 self-end sm:self-auto">
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
+                            doc.status === 'verified'
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : doc.status === 'query_raised'
+                              ? 'bg-rose-50 text-rose-700 border-rose-200'
+                              : 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                          }`}
+                        >
+                          {doc.status === 'verified'
+                            ? 'Verified'
+                            : doc.status === 'query_raised'
+                            ? 'Query Open'
+                            : 'In Review'}
+                        </span>
+
+                        {setUploadedDocs && (
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setUploadedDocs((prev) =>
+                                  prev.map((d) =>
+                                    d.docCode === doc.docCode ? { ...d, status: 'verified' } : d
+                                  )
+                                );
+                              }}
+                              title="Mark Verified"
+                              className="px-2 py-0.5 text-[10px] bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded font-semibold transition-colors"
+                            >
+                              Verify
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setUploadedDocs((prev) =>
+                                  prev.map((d) =>
+                                    d.docCode === doc.docCode
+                                      ? {
+                                          ...d,
+                                          status: 'query_raised',
+                                          documentStatusNote: 'Officer flagged discrepancy during scrutiny',
+                                        }
+                                      : d
+                                  )
+                                );
+                              }}
+                              title="Flag Query"
+                              className="px-2 py-0.5 text-[10px] bg-rose-100 hover:bg-rose-200 text-rose-800 rounded font-semibold transition-colors"
+                            >
+                              Flag
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>

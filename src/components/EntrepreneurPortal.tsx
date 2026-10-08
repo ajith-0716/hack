@@ -244,9 +244,9 @@ export const EntrepreneurPortal: React.FC<EntrepreneurPortalProps> = ({
             </div>
 
             <div className="bg-slate-800/80 backdrop-blur border border-slate-700 rounded-xl p-3.5 min-w-[130px]">
-              <div className="text-[11px] font-medium text-slate-400">Parallel SLA Window</div>
-              <div className="text-xl font-bold font-mono text-indigo-400 tabular-nums">
-                {evaluation.criticalPathDays} Days
+              <div className="text-[11px] font-medium text-slate-400">Verified Documents</div>
+              <div className="text-xl font-bold font-mono text-emerald-400 tabular-nums">
+                {verifiedDocsCount} / {totalRequiredDocs}
               </div>
             </div>
 
@@ -503,8 +503,8 @@ export const EntrepreneurPortal: React.FC<EntrepreneurPortalProps> = ({
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-slate-600 font-mono">
-                Total Statutory Fees: <strong>₹{evaluation.estimatedTotalGovFees.toLocaleString('en-IN')}</strong>
+              <span className="text-slate-600 font-mono text-xs">
+                Clearances: <strong className="text-slate-900">{applicableApprovals.length} Applicable</strong>
               </span>
             </div>
           </div>
@@ -551,13 +551,11 @@ export const EntrepreneurPortal: React.FC<EntrepreneurPortalProps> = ({
                       </div>
 
                       <div className="flex flex-wrap items-center gap-4 text-[11px] text-slate-500 pt-1 font-mono">
-                        <span>Statutory SLA: <strong className="text-slate-800">{appr.slaDays} Days</strong></span>
-                        <span>·</span>
-                        <span>Govt Fee: <strong className="text-slate-800">₹{appr.governmentFeeINR.toLocaleString('en-IN')}</strong></span>
+                        <span>Department: <strong className="text-slate-800">{appr.department}</strong></span>
                         <span>·</span>
                         <span>Act: <strong className="text-slate-800">{appr.statuteAct}</strong></span>
                         <span>·</span>
-                        <span>Validity: <strong className="text-slate-800">{appr.validityYears} Years</strong></span>
+                        <span>Risk Tier: <strong className="text-slate-800 capitalize">{appr.riskCategory}</strong></span>
                       </div>
                     </div>
 
@@ -798,46 +796,65 @@ export const EntrepreneurPortal: React.FC<EntrepreneurPortalProps> = ({
                       </div>
                     )}
 
-                    {/* Official Portal Link & Actions */}
-                    <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs">
-                      {doc.portalUrl ? (
-                        <a
-                          href={doc.portalUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 hover:underline"
+                    {/* Interactive Change Document Status Control */}
+                    <div className="mt-4 pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="text-[11px] font-bold text-slate-500 mr-1">Change Status:</span>
+                        <button
+                          type="button"
+                          onClick={() => handleUpdateDocStatus(doc.code, 'not_uploaded')}
+                          className={`px-2.5 py-1 text-[11px] rounded-lg font-semibold transition-all ${
+                            !record || record.status === 'not_uploaded'
+                              ? 'bg-slate-800 text-white shadow-xs'
+                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                          }`}
                         >
-                          <span>Official Portal ({new URL(doc.portalUrl).hostname})</span>
-                          <ExternalLink className="w-3 h-3" />
-                        </a>
-                      ) : (
-                        <span className="text-[11px] text-slate-400">Format: {doc.formatAccepted.join(', ')}</span>
-                      )}
-
-                      <div className="flex items-center gap-2">
-                        {/* Interactive Status Changer Dropdown */}
-                        <select
-                          value={record ? record.status : 'not_uploaded'}
-                          onChange={(e) =>
-                            handleUpdateDocStatus(doc.code, e.target.value as any)
-                          }
-                          className="text-[11px] bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-1 px-2 rounded-lg border border-slate-200 cursor-pointer"
-                          title="Manually simulate document lifecycle status"
+                          Pending
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleUpdateDocStatus(doc.code, 'validating')}
+                          className={`px-2.5 py-1 text-[11px] rounded-lg font-semibold transition-all ${
+                            record?.status === 'validating'
+                              ? 'bg-indigo-600 text-white shadow-xs'
+                              : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200'
+                          }`}
                         >
-                          <option value="verified">Status: Verified</option>
-                          <option value="validating">Status: In Review</option>
-                          <option value="query_raised">Status: Query Raised</option>
-                          <option value="not_uploaded">Status: Pending Upload</option>
-                        </select>
+                          In Review
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleUpdateDocStatus(doc.code, 'query_raised')}
+                          className={`px-2.5 py-1 text-[11px] rounded-lg font-semibold transition-all ${
+                            record?.status === 'query_raised'
+                              ? 'bg-rose-600 text-white shadow-xs'
+                              : 'bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200'
+                          }`}
+                        >
+                          Query Raised
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleUpdateDocStatus(doc.code, 'verified')}
+                          className={`px-2.5 py-1 text-[11px] rounded-lg font-semibold transition-all ${
+                            record?.status === 'verified'
+                              ? 'bg-emerald-600 text-white shadow-xs'
+                              : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
+                          }`}
+                        >
+                          Verified
+                        </button>
+                      </div>
 
+                      <div className="flex items-center gap-2 self-end sm:self-auto">
                         <button
                           onClick={() => setSelectedDocForScan(doc)}
-                          className={`px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition-colors ${
+                          className={`px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition-colors text-xs ${
                             isVerified
                               ? 'bg-slate-100 hover:bg-slate-200 text-slate-800'
                               : hasQuery
-                              ? 'bg-rose-600 hover:bg-rose-700 text-white shadow-sm'
-                              : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm'
+                              ? 'bg-rose-600 hover:bg-rose-700 text-white shadow-xs'
+                              : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs'
                           }`}
                         >
                           {isVerified ? (
@@ -848,12 +865,12 @@ export const EntrepreneurPortal: React.FC<EntrepreneurPortalProps> = ({
                           ) : hasQuery ? (
                             <>
                               <UploadCloud className="w-3.5 h-3.5" />
-                              <span>Re-Upload &amp; Resolve</span>
+                              <span>Resolve Query</span>
                             </>
                           ) : (
                             <>
                               <UploadCloud className="w-3.5 h-3.5" />
-                              <span>Upload &amp; Run OCR</span>
+                              <span>Upload &amp; Scan</span>
                             </>
                           )}
                         </button>
@@ -902,12 +919,12 @@ export const EntrepreneurPortal: React.FC<EntrepreneurPortalProps> = ({
                   Simultaneous Multi-Department Routing Active
                 </strong>
                 <span>
-                  Applications are being processed concurrently under the State Right to Public Services Act (RTS). SLA countdown clocks are legally enforceable.
+                  Applications are being processed concurrently under the Single-Window Public Services Framework.
                 </span>
               </div>
             </div>
             <span className="font-mono text-xs bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded font-bold">
-              Critical Path: {evaluation.criticalPathDays} Days
+              Parallel Desk Routing
             </span>
           </div>
 
@@ -951,7 +968,7 @@ export const EntrepreneurPortal: React.FC<EntrepreneurPortalProps> = ({
                       )}
                       {isScheduled && (
                         <span className="inline-flex items-center gap-1 text-xs font-bold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-lg border border-indigo-200">
-                          <Calendar className="w-4 h-4" /> Joint Site Visit Scheduled ({task.inspectionDate})
+                          <Calendar className="w-4 h-4" /> Joint Site Visit Scheduled
                         </span>
                       )}
                       {isUnderScrutiny && (
@@ -997,20 +1014,20 @@ export const EntrepreneurPortal: React.FC<EntrepreneurPortalProps> = ({
                     </div>
                   )}
 
-                  {/* SLA countdown bar */}
+                  {/* Status footer bar */}
                   <div className="flex items-center justify-between text-[11px] text-slate-500 pt-2 border-t border-slate-100">
                     <div className="flex items-center gap-2">
-                      <span>Statutory SLA: {task.slaDaysTotal} Days</span>
+                      <span>Filing Status: Active</span>
                       <span>·</span>
                       <span>Submitted: {task.submittedAt || 'Pending'}</span>
                     </div>
 
-                    <div className="font-mono">
+                    <div>
                       {isApproved ? (
-                        <span className="text-emerald-600 font-bold">Completed within SLA</span>
+                        <span className="text-emerald-600 font-bold">Clearance Granted</span>
                       ) : (
-                        <span className="text-amber-700 font-semibold">
-                          {task.slaDaysRemaining} Days Remaining Before Automatic Escalation
+                        <span className="text-indigo-700 font-semibold">
+                          Active Department Queue
                         </span>
                       )}
                     </div>
@@ -1031,7 +1048,7 @@ export const EntrepreneurPortal: React.FC<EntrepreneurPortalProps> = ({
               <span>Statutory Compliance Lifecycle &amp; Renewal Radar</span>
             </h3>
             <p className="text-slate-400">
-              OneGov AI monitors statutory expiry dates and triggers automatic alerts 60, 30, and 15 days in advance. Never face sudden factory closure notices.
+              OneGov AI monitors statutory expiry dates and triggers automatic alerts in advance. Never face sudden closure notices.
             </p>
           </div>
 
@@ -1039,9 +1056,9 @@ export const EntrepreneurPortal: React.FC<EntrepreneurPortalProps> = ({
             <div className="p-5 bg-white rounded-xl border border-amber-200 shadow-sm space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-amber-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                  Critical Expiry · 21 Days Left
+                  Critical Renewal Required
                 </span>
-                <span className="text-[11px] text-slate-400 font-mono">Fine: ₹1,000 / day</span>
+                <span className="text-[11px] text-slate-500 font-mono">Form VI</span>
               </div>
               <h4 className="font-bold text-sm text-slate-900">
                 Steam Boiler Fitness Certificate (Form VI)
@@ -1055,7 +1072,7 @@ export const EntrepreneurPortal: React.FC<EntrepreneurPortalProps> = ({
                   onClick={() => alert('Initiating streamlined renewal submission with pre-filled technical specs.')}
                   className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg text-xs transition-colors"
                 >
-                  1-Click Renew
+                  Renew Certificate
                 </button>
               </div>
             </div>
@@ -1063,9 +1080,9 @@ export const EntrepreneurPortal: React.FC<EntrepreneurPortalProps> = ({
             <div className="p-5 bg-white rounded-xl border border-slate-200 shadow-sm space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-blue-900 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
-                  Expiring Soon · 42 Days Left
+                  Renewal Open
                 </span>
-                <span className="text-[11px] text-slate-400 font-mono">Fine: ₹500 / day</span>
+                <span className="text-[11px] text-slate-500 font-mono">Annual Review</span>
               </div>
               <h4 className="font-bold text-sm text-slate-900">
                 State Fire Safety NOC (Occupancy Clearance)
@@ -1087,9 +1104,9 @@ export const EntrepreneurPortal: React.FC<EntrepreneurPortalProps> = ({
             <div className="p-5 bg-white rounded-xl border border-slate-200 shadow-sm space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                  Active · 418 Days Remaining
+                  Active &amp; Compliant
                 </span>
-                <span className="text-[11px] text-slate-400 font-mono">DISH Form 4</span>
+                <span className="text-[11px] text-slate-500 font-mono">DISH Form 4</span>
               </div>
               <h4 className="font-bold text-sm text-slate-900">
                 Factory Operating License (Factories Act 1948)
@@ -1102,9 +1119,9 @@ export const EntrepreneurPortal: React.FC<EntrepreneurPortalProps> = ({
             <div className="p-5 bg-white rounded-xl border border-slate-200 shadow-sm space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                  Active · 1,309 Days Remaining
+                  Active &amp; Compliant
                 </span>
-                <span className="text-[11px] text-slate-400 font-mono">5-Year Term</span>
+                <span className="text-[11px] text-slate-500 font-mono">5-Year Term</span>
               </div>
               <h4 className="font-bold text-sm text-slate-900">
                 Consent to Operate (CTO) - Air &amp; Water Acts

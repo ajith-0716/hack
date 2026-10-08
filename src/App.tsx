@@ -4,22 +4,35 @@
  */
 
 import React, { useState } from 'react';
-import { StartupProfile, UploadedDocRecord, ApplicationTask } from './types';
+import {
+  StartupProfile,
+  UploadedDocRecord,
+  ApplicationTask,
+  UserProfile,
+  FlowStep,
+  SystemAnomaly,
+} from './types';
 import {
   SAMPLE_STARTUPS,
   getInitialDocsAndTasksForStartup,
 } from './data/sampleStartups';
+import { DEMO_USERS } from './data/authUsers';
 import { Header, ActiveTab } from './components/Header';
+import { ComplianceFlowWizard } from './components/ComplianceFlowWizard';
+import { AnomalyDiagnosticsLab, INITIAL_ANOMALIES } from './components/AnomalyDiagnosticsLab';
 import { EntrepreneurPortal } from './components/EntrepreneurPortal';
 import { OfficerPortal } from './components/OfficerPortal';
 import { InspectionPortal } from './components/InspectionPortal';
 import { AnalyticsPortal } from './components/AnalyticsPortal';
 import { DocumentExplorer } from './components/DocumentExplorer';
-import { ShieldCheck, Building2 } from 'lucide-react';
+import { ShieldCheck, Building2, AlertTriangle, CheckCircle2 } from 'lucide-react';
 
 export default function App() {
   const [currentStartup, setCurrentStartup] = useState<StartupProfile>(SAMPLE_STARTUPS[0]);
-  const [activeTab, setActiveTab] = useState<ActiveTab>('founder');
+  const [activeTab, setActiveTab] = useState<ActiveTab>('flow');
+  const [currentStep, setCurrentStep] = useState<FlowStep>(1);
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(DEMO_USERS[0]);
+  const [activeAnomalies, setActiveAnomalies] = useState<SystemAnomaly[]>(INITIAL_ANOMALIES);
 
   const initialData = getInitialDocsAndTasksForStartup(SAMPLE_STARTUPS[0].id);
   const [uploadedDocs, setUploadedDocs] = useState<UploadedDocRecord[]>(initialData.docs);
@@ -32,6 +45,8 @@ export default function App() {
     setApplicationTasks(data.tasks);
   };
 
+  const activeAnomaliesCount = activeAnomalies.filter((a) => a.status === 'active').length;
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans">
       {/* Universal Navigation Header */}
@@ -40,10 +55,36 @@ export default function App() {
         setActiveTab={setActiveTab}
         currentStartup={currentStartup}
         setCurrentStartup={handleStartupChange}
+        currentUser={currentUser}
+        setCurrentUser={setCurrentUser}
+        activeAnomaliesCount={activeAnomaliesCount}
       />
 
       {/* Main Viewport Content */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {activeTab === 'flow' && (
+          <ComplianceFlowWizard
+            currentStep={currentStep}
+            setCurrentStep={setCurrentStep}
+            currentUser={currentUser}
+            setCurrentUser={setCurrentUser}
+            startup={currentStartup}
+            setStartup={setCurrentStartup}
+            uploadedDocs={uploadedDocs}
+            setUploadedDocs={setUploadedDocs}
+            applicationTasks={applicationTasks}
+            setApplicationTasks={setApplicationTasks}
+            onOpenAnomalyLab={() => setActiveTab('anomalies')}
+          />
+        )}
+
+        {activeTab === 'anomalies' && (
+          <AnomalyDiagnosticsLab
+            activeAnomalies={activeAnomalies}
+            setActiveAnomalies={setActiveAnomalies}
+          />
+        )}
+
         {activeTab === 'founder' && (
           <EntrepreneurPortal
             startup={currentStartup}
@@ -61,6 +102,7 @@ export default function App() {
             applicationTasks={applicationTasks}
             setApplicationTasks={setApplicationTasks}
             uploadedDocs={uploadedDocs}
+            setUploadedDocs={setUploadedDocs}
           />
         )}
 
@@ -86,14 +128,14 @@ export default function App() {
             </div>
             <div>
               <span className="font-bold text-slate-900">OneGov AI</span>
-              <span className="text-slate-400"> · Intelligent Regulatory Approval &amp; Compliance Management</span>
+              <span className="text-slate-400"> · National Single Window Regulatory &amp; Compliance Hub</span>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-4 text-slate-500">
-            <span>Built for Smart India Hackathon 2026</span>
-            <span>·</span>
             <span>Ease of Doing Business (EoDB)</span>
+            <span>·</span>
+            <span>Smart India Hackathon 2026 Prototype</span>
             <span>·</span>
             <span className="flex items-center gap-1 text-emerald-600 font-semibold">
               <ShieldCheck className="w-3.5 h-3.5" /> India DPDP Act &amp; DigiLocker Aligned

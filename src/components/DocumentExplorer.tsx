@@ -272,9 +272,7 @@ export const DocumentExplorer: React.FC = () => {
                 </div>
                 <div className="flex items-center justify-between text-[10px] text-slate-400 mt-2 pt-2 border-t border-slate-100">
                   <span>Authority: {doc.issuingAuthority}</span>
-                  {doc.processingTimeEstimate && (
-                    <span className="font-mono text-slate-600 font-semibold">{doc.processingTimeEstimate}</span>
-                  )}
+                  <span className="text-slate-500 font-mono">Max {doc.maxSizeMB} MB</span>
                 </div>
               </div>
             );
@@ -320,34 +318,15 @@ export const DocumentExplorer: React.FC = () => {
                   )}
                 </div>
                 <div>
-                  <span className="text-slate-500 block text-[11px]">Official Processing Timeline</span>
+                  <span className="text-slate-500 block text-[11px]">Accepted Format &amp; Size</span>
                   <strong className="text-slate-900 block text-xs">
-                    {activeDoc.processingTimeEstimate || '3 - 7 Working Days'}
+                    {activeDoc.formatAccepted.join(', ')} (Max {activeDoc.maxSizeMB} MB)
                   </strong>
                   <span className="text-[10px] text-slate-500 block mt-0.5">
-                    Accepted Formats: {activeDoc.formatAccepted.join(', ')} (Max {activeDoc.maxSizeMB} MB)
+                    Verification: Neural OCR + DigiLocker Seal
                   </span>
                 </div>
               </div>
-
-              {/* Direct Government Application Link */}
-              {activeDoc.portalUrl && (
-                <div className="p-3.5 bg-indigo-50/70 border border-indigo-200 rounded-xl flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 text-indigo-950 font-medium">
-                    <ExternalLink className="w-4 h-4 text-indigo-600" />
-                    <span>Official Issuing Portal: <strong>{activeDoc.portalUrl}</strong></span>
-                  </div>
-                  <a
-                    href={activeDoc.portalUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-[11px] shadow-sm transition-colors flex items-center gap-1"
-                  >
-                    <span>Open Govt Portal</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                </div>
-              )}
 
               {/* Entities Extracted by Neural OCR */}
               <div className="space-y-3">

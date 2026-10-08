@@ -181,3 +181,39 @@ export interface RenewalAlert {
   status: 'active' | 'expiring_soon' | 'critical' | 'expired';
   statutoryFinePerDay?: number;
 }
+
+export type UserRole = 'founder' | 'officer' | 'inspector' | 'admin';
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  department?: string;
+  designation: string;
+  avatarUrl?: string;
+}
+
+export type FlowStep = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+
+export type AnomalyType =
+  | 'invalid_input'
+  | 'sensor_failure'
+  | 'unusual_network'
+  | 'component_failure'
+  | 'sudden_value_change';
+
+export interface SystemAnomaly {
+  id: string;
+  type: AnomalyType;
+  title: string;
+  status: 'active' | 'resolved';
+  timestamp: string;
+  component: string;
+  severity: 'warning' | 'error' | 'critical';
+  details: string;
+  metricCurrent?: string;
+  metricThreshold?: string;
+  diagnosticLog: string[];
+  mitigationStep: string;
+}
